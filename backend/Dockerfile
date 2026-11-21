@@ -1,13 +1,15 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /src
-COPY package*.json ./
-RUN npm ci
+RUN npm install -g pnpm@12
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm ci
 COPY . .
-RUN npm run build
+RUN pnpm install --frozen-lockfile
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /src
-COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install -g pnpm@12
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /src/dist ./dist
 CMD [ "node", "dist/main.js" ]

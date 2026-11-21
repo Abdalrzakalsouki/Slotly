@@ -1,9 +1,7 @@
 # postgress, Redis, Mailpit
-version: '1.0.0'
-
 services:
   database:
-    image: postgress
+    image: postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -19,11 +17,11 @@ services:
       timeout: 5s
       retries: 5
 
-  radis:
+  redis:
     image: redis:alpine
     ports:
       - '6379:6379'
-    command: redis-server --appendonly yes --requirepass ${RADIS_PASSWORD}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     restart: 'unless-stopped'
     volumes:
       - redis_data:/data
@@ -53,14 +51,14 @@ services:
 
   api:
     build:
-      context: ./backend
+      context: ./
       dockerfile: Dockerfile
     restart: 'unless-stopped'
     ports:
       - '127.0.0.1:3000:3000'
     environment:
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
