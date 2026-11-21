@@ -1,0 +1,78 @@
+# postgress, Redis, Mailpit
+services:
+  database:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '127.0.0.1:5432:5432'
+    restart: 'unless-stopped'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - '127.0.0.1:6379:6379'
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    restart: 'unless-stopped'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:v1.33
+    environment:
+      MP_MAX_MESSAGES: ${MP_MAX_MESSAGES}
+      MP_DATABASE: ${MP_DATABASE}
+    ports:
+      - '127.0.0.1:8025:8025' #web
+      - '127.0.0.1:1025:1025' #server
+    restart: 'unless-stopped'
+    volumes:
+      - mailpit_data:/data
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: 'unless-stopped'
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  mailpit_data:
