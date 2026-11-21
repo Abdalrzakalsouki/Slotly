@@ -51,6 +51,29 @@ services:
       retries: 3
       start_period: 10s
 
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: 'unless-stopped'
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
 volumes:
   postgress_data:
   redis_data:
