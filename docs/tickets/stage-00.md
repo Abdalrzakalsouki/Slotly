@@ -59,11 +59,20 @@ sentence each.
 **Why:** everyone (and CI) runs the same Postgres, Redis and mail catcher.
 **Do:**
 
--   `docker-compose.yml` with Postgres, Redis, and Mailpit (catches
-    emails, web UI on a local port).
--   Named volumes for Postgres data, healthchecks on each service.
--   `.env.example` with `DATABASE_URL`, `REDIS_URL`, `SMTP_HOST`,
-    `SMTP_PORT`.
+-   `backend/compose.yaml` with Postgres, Redis, Mailpit (catches
+    emails, web UI on a local port) and the `api` service (built from
+    `backend/Dockerfile`). Pin image tags (no unpinned `postgres` or
+    `latest`). Publish host ports only on `127.0.0.1`, and only the ones
+    you use from the host.
+-   Named volumes for Postgres, Redis and Mailpit data (mount path must
+    match the Postgres major version's data layout), healthchecks on each
+    service, and `api` waits for them with `depends_on: service_healthy`.
+-   `backend/.env.example` with the values Compose reads:
+    `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`,
+    `REDIS_PASSWORD`, `MP_MAX_MESSAGES`, `MP_DATABASE` (dummy values
+    only; the real `.env` is git-ignored). Compose builds `DATABASE_URL`,
+    `REDIS_HOST`/`REDIS_PORT`/`REDIS_PASSWORD` and `SMTP_HOST`/`SMTP_PORT`
+    for the `api` container from those.
 
 **Acceptance:**
 
