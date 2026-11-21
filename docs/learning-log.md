@@ -11,5 +11,8 @@ would do differently, and one concept I can now explain.
 2. learnt that oxc offer alternative to eslint, prettier and many different tools with faster Rust performance
 3. learnt that with docker compose volums should point sometimes to data folder to pressist the data
 4. learnt that to prevent losing redis data since it store in RAM we use appendonly yes option
+5. learnt that pnpm has no ci option just like npm and we should always lock and use prod in production build
+6. leant that Nestjs has a set of steps that involve DTO (data contract for type safe), Pipes (run before the request -> transfer the data type and add validation), Interceptors (run before or after the router handler, can be used for stuffs like logging), DI (Dependency Injection, make class ask for what it needs)
+7. Nestjs already offer a ready moduler for checking configuration (envoriment variables), we can also acess them by import the moduler
 
-_(not started)_
+   _(not started)_
